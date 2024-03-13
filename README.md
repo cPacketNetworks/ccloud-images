@@ -32,14 +32,14 @@ Upload the `ccloud-urls.txt` file to the Azure cloud shell.
 
 The `ccloud-azure-images` script will create the images in your Azure subscription using the URLs provided in `ccloud-urls.txt`.
 
-The following command creates a resource group called `cpacket` in the `westus2` region
+The following command creates a resource group called `cpacket` in the `westus2` region.
 Pipe the script directly through the shell as in the following invocation:
 
 ```bash
 curl -L https://raw.githubusercontent.com/cPacketNetworks/ccloud-images/main/ccloud-azure-images | bash -s -- -g cpacket -l westus2
 ```
 
-This creates a new resource group with a name such as `cpacket` in the `eastus2` region.
+This creates a new resource group with a name such as `cpacket` in the `westus2` region.
 
 ## Customizing the deployment
 
