@@ -1,29 +1,19 @@
 # cCloud virtual appliance images in Microsoft Azure
 
-> Obtain the cCloud virtual appliance images before deploying them into Azure.
-
-## tl;dr
-
-You already have the SAS URLs of the cCloud virtual appliance images in a file called `ccloud-urls.txt` in the [Azure cloud shell][cloudshell].
-You want to deploy these images into Azure in a resource group called `cpacket` in the `westus2` region.
-Paste the following into the Azure cloud shell and press Enter:
-
-```bash
-curl -L https://raw.githubusercontent.com/cPacketNetworks/ccloud-images/main/ccloud-azure-images | bash -s -- -g cpacket -l westus2
-```
+*Prerequisite*: the user will need cCloud Azure SAS URLs to be shared by cPacket via a text file named `ccloud-urls.txt`.
+These URLs enable temporary access to securely download cPacket images and expire 14 days from the date of creation.
 
 ## Detailed instructions
 
-1. Obtain the appliance URL file from cPacket (default name `ccloud-urls.txt`).
-1. Open the Azure cloud shell.
-1. Upload it to the Azure cloud shell.
-1. Download and execute the `ccloud-azure-images` script.
+1. Obtain the cCloud Azure SAS URLs from a cPacket representative (`ccloud-urls.txt`)
+2. Login to the desired Azure account and open Azure Cloud Shell
+3. Upload the SAS URL txt file to Azure Cloud Shell
+4. Download and execute the ccloud-azure-images script
 
 ### 1. Obtain the appliance URLs file
 
-Contact cPacket Networks to obtain the appliance URLs file.
-This file contains the Shared Access Signature (SAS) URLs of the appliances.
-(It is called `ccloud-urls.txt` by default.)
+Contact cPacket Networks to obtain the SAS URLs utilized to deploy cCloud virtual appliances.
+The filename is `ccloud-urls.txt` by default and is referenced in the script below.
 
 ### 2. Open the Azure cloud shell
 
@@ -49,7 +39,7 @@ Pipe the script directly through the shell as in the following invocation:
 curl -L https://raw.githubusercontent.com/cPacketNetworks/ccloud-images/main/ccloud-azure-images | bash -s -- -g cpacket -l westus2
 ```
 
-This creates a new resource group with a name such as `cpacket-ccloud-abc123` in the `eastus2` region.
+This creates a new resource group with a name such as `cpacket` in the `eastus2` region.
 
 ## Customizing the deployment
 
