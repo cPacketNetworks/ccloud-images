@@ -3,6 +3,7 @@ set -e
 set -o pipefail
 
 root_command() {
+  output_file=$(mktemp /tmp/output_file.XXXXXX)
   # shellcheck disable=SC2154
   location="${args['--location']}"
   # Check if location is provided as an argument
@@ -20,6 +21,8 @@ root_command() {
     fi
   fi
 
+  echo "location: $location" >>"$output_file"
+
   supplied_resource_group="${args['--resource-group']}"
   # Check if an RG argument is provided and not empty
   if [[ -n "$supplied_resource_group" ]]; then
@@ -29,13 +32,15 @@ root_command() {
       az group create -n "$supplied_resource_group" -l "$location"
       echo "Created new resource group: $supplied_resource_group."
     else
-      echo "Using Resource group: '$supplied_resource_group'"
+      echo "Using resource group: '$supplied_resource_group'"
     fi
     resource_group="$supplied_resource_group"
   else
     echo "Resource group not specified. Exiting."
     exit 1
   fi
+
+  echo "resource group: $resource_group" >>"$output_file"
 
   supplied_storage_account="${args['--storage-account']}"
   if [[ -n "$supplied_storage_account" ]]; then
@@ -57,6 +62,7 @@ root_command() {
     storage_account="$generated_storage_account"
   fi
   echo "Using storage account: $storage_account"
+  echo "storage account: $storage_account" >>"$output_file"
 
   supplied_container="${args['--container']}"
 
@@ -73,8 +79,9 @@ root_command() {
     --auth-mode login
 
   echo "Container '$container' created ..."
+  echo "container: $container" >>"$output_file"
 
-  echo "Creating images in resource group: ${resource_group} and VHDs in storage account: ${storage_account} container: ${container} ..."
+  echo "Creating images in resource group: ${resource_group} and VHDs in storage account: ${storage_account}, container: ${container} ..."
   sas_urls_file="${args['--file']}"
 
   if [ -f "$sas_urls_file" ]; then
@@ -94,7 +101,8 @@ root_command() {
           "$storage_account" \
           "$(azure_get_user)" \
           "$container" \
-          "$location"
+          "$location" \
+          "$output_file"
       fi
     done 9<"$sas_urls_file"
 
@@ -114,12 +122,15 @@ root_command() {
         "$storage_account" \
         "$(azure_get_user)" \
         "$container" \
-        "$location"
+        "$location" \
+        "$output_file"
     done 9<"$sas_urls_file"
 
     rm "$sas_urls_file"
 
   fi
+
+  cat "$output_file"
 
 }
 
@@ -237,8 +248,16 @@ create_image() {
   local created_by="$4"
   local container="$5"
   local location="$6"
+  local output_file="$7"
 
   local image_name
+  local filename
+  local sas_expiry
+  local sas_token
+  local image_id
+  local existing_image
+  local destination_url
+  local sas_destination_url
 
   filename=$(get_filename "$source_url")
   image_name="${filename%.vhd}"
@@ -294,8 +313,13 @@ create_image() {
       --os-type Linux \
       --source "$image_source" \
       --tags "createdby=${created_by}"
+
+    image_id="$(az image show -g "${resource_group}" -n "$image_name" --query id -o tsv)"
+    echo "Image ${image_name} created with ID: ${image_id}"
+    echo "image id for ${image_name}: ${image_id}" >>"$output_file"
+
   else
-    echo "Image ${image_name} already exists in this resource group. Skipping..."
+    echo "Image ${image_name} already exists in this resource group (${resource_group}). Skipping..."
   fi
 }
 
@@ -322,7 +346,7 @@ generate_expiry_days() {
 get_filename() {
   local uri="$1"
   # Remove the URI query parameters.
-  # If the URI is 'https://something.blob.core.windows.net/container/filename?key1=value1&key2=value2',
+  # If the URI is 'https://something.blob.core.windows.net/container/filename.vhd?key1=value1&key2=value2',
   # ... retrieve 'https://something.blob.core.windows.net/container/filename.vhd'
   uri="${uri%\?*}"
 
@@ -475,12 +499,11 @@ parse_requirements() {
 }
 
 initialize() {
-  version="1.4.38"
+  version="1.6.1"
   long_usage=''
   set -e
 
   # shellcheck disable=SC2034
-  # CONFIG_FILE="ccloud-azure-create-image.ini"
 
   if [[ -n "$CCLOUD_DEBUG" ]]; then set -x; fi
   if [[ "${TRACE-0}" == "1" ]]; then set -o xtrace; fi
