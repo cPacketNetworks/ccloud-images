@@ -42,7 +42,7 @@ curl -L https://raw.githubusercontent.com/cPacketNetworks/ccloud-images/main/ccl
 
 This creates a new resource group with a name such as `cpacket` in the `westus2` region.
 
-## Customizing the deployment
+## Customizing the Deployment
 
 If you have an existing resource group or would like to create the resource group with a specific name, first download the script and then supply it with the name of your resource group.
 
