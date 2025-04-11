@@ -1,4 +1,4 @@
-# cCloud Virtual Appliance Images in Microsoft Azure
+# Cloud Tools Virtual Appliance Images in Azure
 
 *Prerequisite*: The user will need cPacket Azure SAS URLs to be shared by cPacket via a text file named `ccloud-urls.txt`. These URLs enable temporary access to securely download cPacket images and expire 14 days from the date of creation.
 
